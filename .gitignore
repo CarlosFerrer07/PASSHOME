@@ -1,0 +1,32 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+*.userprefs
+
+## Visual Studio
+.vs/
+*.sln.ide/
+
+## JetBrains Rider
+.idea/
+*.sln.iml
+
+## VS Code
+.vscode/
+
+## User Secrets
+secrets.json
+
+## Development appsettings
+appsettings.Development.json
+appsettings.Production.json
+
+## Node / npm
+node_modules/
+package-lock.json
+
+## OS
+.DS_Store
+Thumbs.db
