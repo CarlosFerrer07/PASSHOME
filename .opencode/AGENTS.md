@@ -105,7 +105,8 @@ El proyecto Api tiene dos perfiles en launchSettings.json:
 
 ## Notas adicionales
 
-- La `appsettings.json` tiene connection string para Docker SQL Server (sa/<TU_CONTRASEÑA>) — cambiar antes de commitear
+- Desarrollo: `appsettings.Development.json` (no se sube) tiene credenciales reales; `appsettings.json` (se sube) tiene placeholders
+- Scalar API UI en `/scalar/v1` (solo dev) — requiere `BearerSecuritySchemeTransformer` para mostrar el botón Authorize
 - La JWT Key es un placeholder (`YourSuperSecretKeyAtLeast32CharactersLong!`) — cambiar en producción
 - El `DataKeyService` usa `ConcurrentDictionary` en memoria — los datos se pierden al reiniciar la API (el usuario debe reloguear)
 - El frontend Angular 21 usará zoneless change detection, Signals, y Signal Forms (experimental)
