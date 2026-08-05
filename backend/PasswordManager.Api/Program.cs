@@ -1,5 +1,3 @@
-using System.Security.Claims;
-using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -11,6 +9,9 @@ using PasswordManager.DTOs.Passwords;
 using PasswordManager.Infrastructure.Data;
 using PasswordManager.Infrastructure.Services;
 using Scalar.AspNetCore;
+using System.Data;
+using System.Security.Claims;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -144,6 +145,40 @@ app.MapGet("/api/passwords", async (
         p.UpdatedAt));
 
     return Results.Ok(result);
+}).RequireAuthorization();
+
+app.MapGet("/api/passwords/{id}",async(
+    int id,
+    ClaimsPrincipal httpUser,
+    AppDbContext db,
+    IEncryptionService encryption,
+    IDataKeyService dataKeyService
+    ) =>
+{
+    var userId = GetUserId(httpUser);
+    var datakey = dataKeyService.GetKey(userId);
+    if (datakey is null)
+        return Results.Unauthorized();
+    var entry = await db.PasswordEntries
+    .FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId);
+
+    if (entry is null)
+        return Results.NotFound();
+
+    var result = new PasswordEntryDto(
+     entry.Id,
+     entry.Title,
+     entry.Username,
+     encryption.Decrypt(entry.EncryptedPassword, datakey, entry.PasswordIV),
+     entry.Url,
+     entry.CategoryId,
+     entry.Category?.Name,
+     entry.Notes,
+     entry.CreatedAt,
+     entry.UpdatedAt);
+
+    return Results.Ok(result);
+
 }).RequireAuthorization();
 
 app.MapPost("/api/passwords", async (
