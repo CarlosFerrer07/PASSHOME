@@ -113,6 +113,19 @@ app.MapPost("/api/auth/login", async (
     return Results.Ok(new AuthResponse(token, DateTime.UtcNow.AddHours(24)));
 });
 
+app.MapGet("/api/auth/me", async (ClaimsPrincipal httpUser, AppDbContext db) =>
+{
+
+    var userId = GetUserId(httpUser);
+    
+    var user = await db.Users.FirstOrDefaultAsync(u => u.Id == userId);
+    
+    if (user is null) return Results.NotFound();
+    
+    return Results.Ok(new UserProfileDto(user.Id, user.Email, user.CreatedAt));
+
+}).RequireAuthorization();
+
 static int GetUserId(ClaimsPrincipal user) =>
     int.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
