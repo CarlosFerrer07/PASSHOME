@@ -115,16 +115,22 @@ app.MapPost("/api/auth/login", async (
 
 app.MapGet("/api/auth/me", async (ClaimsPrincipal httpUser, AppDbContext db) =>
 {
-
     var userId = GetUserId(httpUser);
-    
     var user = await db.Users.FirstOrDefaultAsync(u => u.Id == userId);
-    
-    if (user is null) return Results.NotFound();
-    
-    return Results.Ok(new UserProfileDto(user.Id, user.Email, user.CreatedAt));
 
+    if (user is null)
+        return Results.NotFound();
+
+    return Results.Ok(new UserProfileDto(user.Id, user.Email, user.CreatedAt));
 }).RequireAuthorization();
+
+app.MapPost("/api/auth/logout", async (ClaimsPrincipal httpUser, IDataKeyService dataKeyService) =>
+{
+    var userId = GetUserId(httpUser);
+    dataKeyService.RemoveKey(userId);
+    return Results.NoContent();
+}).RequireAuthorization();
+
 
 static int GetUserId(ClaimsPrincipal user) =>
     int.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
