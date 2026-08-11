@@ -132,6 +132,36 @@ app.MapPost("/api/auth/logout", async (ClaimsPrincipal httpUser, IDataKeyService
 }).RequireAuthorization();
 
 
+app.MapPut("/api/auth/change-password", async (ChangePasswordRequest request, ClaimsPrincipal httpUser, AppDbContext db, IEncryptionService encryption, IDataKeyService dataKeyService) =>
+{
+    var userId = GetUserId(httpUser);
+
+    var user = await db.Users.FirstOrDefaultAsync(u => u.Id == userId);
+
+    if (user is null)
+        return Results.NotFound();
+
+    if (!encryption.VerifyPassword(request.CurrentPassword, user.MasterPasswordHash, user.Salt))
+        return Results.BadRequest("Current password is incorrect");
+
+    var derivedKey = encryption.DeriveKeyFromPassword(request.CurrentPassword, user.Salt);
+    var encryptedDataBase64 = encryption.Decrypt(user.EncryptedDataKey, derivedKey, user.DataKeyIV);
+    var datakey = Convert.FromBase64String(encryptedDataBase64);
+
+    var newSalt = encryption.GenerateSalt();
+    var newDerivedKey = encryption.DeriveKeyFromPassword(request.NewPassword, newSalt);
+    var newEncryptedDataKey = encryption.Encrypt(Convert.ToBase64String(datakey), newDerivedKey, out var newDataKeyIV);
+
+    user.MasterPasswordHash = Convert.FromBase64String(encryption.HashPassword(request.NewPassword, newSalt));
+    user.Salt = newSalt;
+    user.EncryptedDataKey = newEncryptedDataKey;
+    user.DataKeyIV = newDataKeyIV;
+
+    await db.SaveChangesAsync();
+
+    return Results.Ok();
+}).RequireAuthorization();
+
 static int GetUserId(ClaimsPrincipal user) =>
     int.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
