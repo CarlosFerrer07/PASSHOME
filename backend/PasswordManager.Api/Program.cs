@@ -78,7 +78,7 @@ app.MapPost("/api/auth/register", async (
     var user = new User
     {
         Email = request.Email,
-        MasterPasswordHash = Convert.FromBase64String(encryption.HashPassword(request.MasterPassword, salt)),
+        MasterPasswordHash = Convert.FromBase64String(hash),
         Salt = salt,
         EncryptedDataKey = encryptedDataKey,
         DataKeyIV = dataKeyIV
