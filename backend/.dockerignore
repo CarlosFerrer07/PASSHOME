@@ -1,0 +1,11 @@
+.vs/
+**/bin/
+**/obj/
+**/.vs/
+.git/
+.github/
+.opencode/
+docs/
+README.md
+*.md
+**/TestResults/
