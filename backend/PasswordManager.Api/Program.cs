@@ -44,13 +44,32 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddAuthorization();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        var origins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>()
+            ?? ["http://localhost:4200"];
+        policy.WithOrigins(origins)
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
 builder.Services.AddOpenApi(options =>
 {
     options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
 });
 
+builder.Services.AddHealthChecks();
 var app = builder.Build();
 
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+}
+app.UseHttpsRedirection();
+
+app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -376,5 +395,7 @@ app.MapDelete("/api/categories/{id}", async (
     await db.SaveChangesAsync();
     return Results.NoContent();
 }).RequireAuthorization();
+
+app.MapHealthChecks("/health");
 
 app.Run();
