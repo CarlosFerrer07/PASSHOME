@@ -19,6 +19,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 {
     if (builder.Configuration.GetValue<bool>("UseInMemoryDatabase"))
         options.UseInMemoryDatabase("TestDb");
+    else if (builder.Configuration.GetValue<bool>("UsePostgreSQL"))
+        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
     else
         options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
