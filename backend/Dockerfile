@@ -16,5 +16,7 @@ RUN dotnet publish PasswordManager.Api/PasswordManager.Api.csproj -c Release -o 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 COPY --from=build /app/publish .
+ENV ASPNETCORE_URLS=http://+:8080
+ENV ASPNETCORE_ENVIRONMENT=Production
 EXPOSE 8080
 ENTRYPOINT ["dotnet", "PasswordManager.Api.dll"]
